@@ -28,7 +28,16 @@ function Gameboard () {
         console.log(boardWithCellValues);
     }
 
-    return {getBoard, addValue, printBoard};
+    const resetBoard = () => {
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < columns; j++) {
+                board[i][j].resetValue(); // Reset each cell's value
+            }
+        }
+        console.log("Board reset.");
+    }
+
+    return {getBoard, addValue, printBoard, resetBoard};
 
 };
 
@@ -44,9 +53,14 @@ function Cell() {
 
     const getValue = () => value;
 
+    const resetValue = () => {
+        value = undefined;
+    }
+
     return {
         addValue,
-        getValue
+        getValue,
+        resetValue
     };
 }
 
@@ -57,7 +71,9 @@ function Cell() {
 
 function GameController(playerOneName = "Player One",
 playerTwoName = "PLayer Two") {
-    const board = Gameboard();
+
+    const gameboardInstance = Gameboard();
+    const board = gameboardInstance.getBoard();
 
     const players = [
         {
@@ -79,20 +95,90 @@ playerTwoName = "PLayer Two") {
     const getActivePlayer = () => activePlayer;
 
     const printNewRound = () => {
-        board.printBoard();
+        gameboardInstance.printBoard();
         console.log(`${getActivePlayer().name}'s turn.`);
       };
 
+    const checkWin = (row, column) => {
+
+        for (let row = 0; row < 3; row++) {
+            if (board[row][0].getValue() === board[row][1].getValue() &&
+                board[row][1].getValue() === board[row][2].getValue() &&
+                board[row][0].getValue() !== undefined) {
+                return board[row][0].getValue();
+            }
+        }
+    
+        // Check columns
+        for (let column = 0; column < 3; column++) {
+            if (board[0][column].getValue() === board[1][column].getValue() &&
+                board[1][column].getValue() === board[2][column].getValue() &&
+                board[0][column].getValue() !== undefined) {
+                return board[0][column].getValue();
+            }
+        }
+    
+        // Check diagonals
+        if (board[0][0].getValue() === board[1][1].getValue() &&
+            board[1][1].getValue() === board[2][2].getValue() &&
+            board[0][0].getValue() !== undefined) {
+            return board[0][0].getValue();
+        }
+        if (board[0][2].getValue() === board[1][1].getValue() &&
+            board[1][1].getValue() === board[2][0].getValue() &&
+            board[0][2].getValue() !== undefined) {
+            return board[0][2].getValue();
+        }
+
+        return null;
+    }
+
+    const checkTie = (row, column) => {
+
+        // Iterate through the board
+        for (let row = 0; row < 3; row++) {
+            for (let column = 0; column < 3; column++) {
+                // Check if any cell is empty
+                if (board[row][column].getValue() === undefined) {
+                    return false; // Game is not yet a tie
+                }
+            }
+        }
+    
+        // If all cells are filled and there's no winner, it's a tie
+        return true; // Game is a tie
+    }
+
     const playRound = (row, column) => {
-         const selectedCell = board.getBoard()[row][column];
+        
+        const selectedCell = board[row][column];
         if (selectedCell.getValue() !== undefined) {
         console.log('Oops... That cell is already occupied.');
         printNewRound();
         return; // Exit the function early
     }
         
-        board.addValue(row, column, getActivePlayer().value);
+        gameboardInstance.addValue(row, column, getActivePlayer().value);
+
         //check win logic here
+        let winnerValue = checkWin(row, column);
+        const winningPlayer = players.find(player => player.value === winnerValue);
+        if (winningPlayer) {
+            console.log(`${winningPlayer.name} wins!`)
+            gameboardInstance.printBoard();
+            gameboardInstance.resetBoard();
+            printNewRound();
+            return; 
+        }
+
+        let tieResult = checkTie(row, column);
+        if (tieResult) {
+            console.log(`It's a tie...`);
+            gameboardInstance.resetBoard();
+            printNewRound();
+            return; 
+        }
+
         switchPlayerTurn();
         printNewRound();
     };
