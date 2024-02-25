@@ -1,0 +1,11 @@
+ .cell {
+    border: 1px solid;
+    height: 100px;
+ }
+
+ .game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    width: 300px;
+    margin: 0 auto;
+ }
