@@ -104,17 +104,11 @@ function Gameboard() {
         targetCell.addValue(player);
     }
 
-    const printBoard = () => {
-        const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()));
-        console.log(boardWithCellValues);
-    }
-
     const resetBoard = () => {
         board.map((row) => row.map((cell) => cell.resetValue()));
-        console.log("Board reset.");
     }
 
-    return { getBoard, addValue, printBoard, resetBoard };
+    return { getBoard, addValue, resetBoard };
 
 };
 
