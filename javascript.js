@@ -1,24 +1,25 @@
-const gameIntro = function () {
-        const startButton = document.getElementById('start-button');
-        const introPage = document.querySelector('#intro-page');
-        const gameboardContainer = document.querySelector('.gameboard-container')
-        const playerOneNameInput = document.getElementById('player-one-name');
-        const playerTwoNameInput = document.getElementById('player-two-name');
+(function gameIntro() {
+    const startButton = document.querySelector('.start-button');
+    const introPage = document.querySelector('.intro-page');
+    const gameboardContainer = document.querySelector('.gameboard-container')
+    const playerOneNameInput = document.getElementById('player-one-name');
+    const playerTwoNameInput = document.getElementById('player-two-name');
 
-        startButton.addEventListener('click', function () {
+    startButton.addEventListener('click', function () {
         const playerOneName = playerOneNameInput.value.trim();
         const playerTwoName = playerTwoNameInput.value.trim();
+        console.log(playerOneName);
 
         introPage.style.display = 'none';
 
         // Display game board
-        gameboardContainer.style.display = 'block';
-        
+        gameboardContainer.style.display = '';
+
         game.changePlayersName(playerOneName, playerTwoName);
         displayBoard.announce(`${game.getActivePlayer().name}'s turn.`);
     })
 
-};
+})();
 
 const gameboardDisplay = () => {
 
@@ -43,7 +44,7 @@ const gameboardDisplay = () => {
         gameboardDisplay.addEventListener('click', handleCellClick);
     }
 
-    function resetGameboard () {
+    function resetGameboard() {
         gameboardInstance.resetBoard();
         resetCellDisplay();
         announce(`${game.getActivePlayer().name}'s turn.`);
@@ -162,8 +163,14 @@ function GameController(playerOneName = "Player One",
     let activePlayer = players[0];
 
     const changePlayersName = (playerOne, playerTwo) => {
-        players[0].name = playerOne;
-        players[1].name = playerTwo;
+        if (playerOne == "" || playerTwo == "") {
+            players[0].name = "Player One";
+            players[1].name = "Player Two";
+        } else {
+            players[0].name = playerOne;
+            players[1].name = playerTwo;
+        }
+        
     };
 
     const switchPlayerTurn = () => {
@@ -172,24 +179,27 @@ function GameController(playerOneName = "Player One",
 
     const getActivePlayer = () => activePlayer;
 
-    // const printNewRound = () => {
-    //     gameboardInstance.printBoard();
-    //     displayBoard.announce(`${getActivePlayer().name}'s turn.`);
-    // };
-
     const checkWinAndTie = () => {
         // Check rows, columns, and diagonals for a win
+        // Check rows
         for (let i = 0; i < 3; i++) {
-            // Check rows and columns
             if (
                 (board[i][0].getValue() === board[i][1].getValue() &&
                     board[i][1].getValue() === board[i][2].getValue() &&
-                    board[i][0].getValue() !== '') || // Check rows
-                (board[0][i].getValue() === board[1][i].getValue() &&
-                    board[1][i].getValue() === board[2][i].getValue() &&
-                    board[0][i].getValue() !== '') // Check columns
+                    board[i][0].getValue() !== '')
             ) {
-                return board[i][0].getValue(); // Return the winning value
+                return board[i][0].getValue(); // Return the winning value from the first cell of the row
+            }
+        }
+
+        // Check columns
+        for (let j = 0; j < 3; j++) {
+            if (
+                (board[0][j].getValue() === board[1][j].getValue() &&
+                    board[1][j].getValue() === board[2][j].getValue() &&
+                    board[0][j].getValue() !== '')
+            ) {
+                return board[0][j].getValue(); // Return the winning value from the first cell of the column
             }
         }
 
@@ -222,11 +232,11 @@ function GameController(playerOneName = "Player One",
         return isTie ? 'tie' : null;
     };
 
-    const announceGameEnd = () =>  {
+    const announceGameEnd = () => {
         gameEnded = true;
     }
 
-    const announceGameStart = () =>  {
+    const announceGameStart = () => {
         gameEnded = false;
     }
 
@@ -276,7 +286,6 @@ function GameController(playerOneName = "Player One",
     };
 }
 
-gameIntro();
 const displayBoard = gameboardDisplay();
 const gameboardInstance = Gameboard();
 const game = GameController();
