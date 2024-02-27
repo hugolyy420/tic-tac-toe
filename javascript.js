@@ -1,23 +1,55 @@
-const gameboardDisplay = () => {
-    
-    const gameboardDisplay = document.querySelector('.game-board');
+const gameIntro = function () {
+        const startButton = document.getElementById('start-button');
+        const introPage = document.querySelector('#intro-page');
+        const gameboardContainer = document.querySelector('.gameboard-container')
+        const playerOneNameInput = document.getElementById('player-one-name');
+        const playerTwoNameInput = document.getElementById('player-two-name');
 
-    function createGameboard (rows, columns) {
+        startButton.addEventListener('click', function () {
+        const playerOneName = playerOneNameInput.value.trim();
+        const playerTwoName = playerTwoNameInput.value.trim();
+
+        introPage.style.display = 'none';
+
+        // Display game board
+        gameboardContainer.style.display = 'block';
+        
+        game.changePlayersName(playerOneName, playerTwoName);
+        displayBoard.announce(`${game.getActivePlayer().name}'s turn.`);
+    })
+
+};
+
+const gameboardDisplay = () => {
+
+    const gameboardDisplay = document.querySelector('.game-board');
+    const announcementDisplayBox = document.querySelector('.announcement');
+    const restartButton = document.querySelector('.restart-button');
+
+    createGameboard(3, 3);
+
+    function createGameboard(rows, columns) {
         for (let i = 0; i < rows; i++) {
-                for (let j = 0; j < columns; j++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell');
-                    cell.dataset.row = i;
-                    cell.dataset.column = j;
-                    gameboardDisplay.appendChild(cell);
-                }
-            } 
-            
-            gameboardDisplay.addEventListener('click', handleCellClick);
+            for (let j = 0; j < columns; j++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.row = i;
+                cell.dataset.column = j;
+                gameboardDisplay.appendChild(cell);
+            }
+        }
+
+        restartButton.addEventListener('click', resetGameboard);
+        gameboardDisplay.addEventListener('click', handleCellClick);
     }
 
-    
-   
+    function resetGameboard () {
+        gameboardInstance.resetBoard();
+        resetCellDisplay();
+        announce(`${game.getActivePlayer().name}'s turn.`);
+        game.announceGameStart();
+    }
+
 
     function handleCellClick(event) {
         const cell = event.target;
@@ -38,10 +70,21 @@ const gameboardDisplay = () => {
         }
     }
 
-    return {createGameboard, updateCellDisplay};
+    function resetCellDisplay() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell) => cell.textContent = '');
+    }
+
+    function announce(message) {
+        announcementDisplayBox.textContent = message;
+    }
+
+
+
+    return { createGameboard, updateCellDisplay, resetCellDisplay, announce };
 }
 
-function Gameboard () {
+function Gameboard() {
     const rows = 3;
     const columns = 3;
     const board = [];
@@ -57,7 +100,7 @@ function Gameboard () {
 
     const addValue = (row, column, player) => {
         let targetCell = board[row][column];
-           targetCell.addValue(player); 
+        targetCell.addValue(player);
     }
 
     const printBoard = () => {
@@ -70,7 +113,7 @@ function Gameboard () {
         console.log("Board reset.");
     }
 
-    return {getBoard, addValue, printBoard, resetBoard};
+    return { getBoard, addValue, printBoard, resetBoard };
 
 };
 
@@ -100,12 +143,10 @@ function Cell() {
 //function for adding their symbol
 
 function GameController(playerOneName = "Player One",
-playerTwoName = "PLayer Two") {
+    playerTwoName = "Player Two") {
 
-    const gameboardInstance = Gameboard();
+    let gameEnded = false;
     const board = gameboardInstance.getBoard();
-    const displayBoard = gameboardDisplay();
-    displayBoard.createGameboard(3,3);
 
     const players = [
         {
@@ -120,108 +161,126 @@ playerTwoName = "PLayer Two") {
 
     let activePlayer = players[0];
 
+    const changePlayersName = (playerOne, playerTwo) => {
+        players[0].name = playerOne;
+        players[1].name = playerTwo;
+    };
+
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
-      };
+    };
 
     const getActivePlayer = () => activePlayer;
 
-    const printNewRound = () => {
-        gameboardInstance.printBoard();
-        console.log(`${getActivePlayer().name}'s turn.`);
-      };
+    // const printNewRound = () => {
+    //     gameboardInstance.printBoard();
+    //     displayBoard.announce(`${getActivePlayer().name}'s turn.`);
+    // };
 
-    const checkWin = () => {
-
-        for (let row = 0; row < 3; row++) {
-            if (board[row][0].getValue() === board[row][1].getValue() &&
-                board[row][1].getValue() === board[row][2].getValue() &&
-                board[row][0].getValue() !== '') {
-                return board[row][0].getValue();
+    const checkWinAndTie = () => {
+        // Check rows, columns, and diagonals for a win
+        for (let i = 0; i < 3; i++) {
+            // Check rows and columns
+            if (
+                (board[i][0].getValue() === board[i][1].getValue() &&
+                    board[i][1].getValue() === board[i][2].getValue() &&
+                    board[i][0].getValue() !== '') || // Check rows
+                (board[0][i].getValue() === board[1][i].getValue() &&
+                    board[1][i].getValue() === board[2][i].getValue() &&
+                    board[0][i].getValue() !== '') // Check columns
+            ) {
+                return board[i][0].getValue(); // Return the winning value
             }
         }
-    
-        // Check columns
-        for (let column = 0; column < 3; column++) {
-            if (board[0][column].getValue() === board[1][column].getValue() &&
-                board[1][column].getValue() === board[2][column].getValue() &&
-                board[0][column].getValue() !== '') {
-                return board[0][column].getValue();
-            }
-        }
-    
+
         // Check diagonals
-        if (board[0][0].getValue() === board[1][1].getValue() &&
-            board[1][1].getValue() === board[2][2].getValue() &&
-            board[0][0].getValue() !== '') {
-            return board[0][0].getValue();
+        if (
+            (board[0][0].getValue() === board[1][1].getValue() &&
+                board[1][1].getValue() === board[2][2].getValue() &&
+                board[0][0].getValue() !== '') || // Check diagonal \
+            (board[0][2].getValue() === board[1][1].getValue() &&
+                board[1][1].getValue() === board[2][0].getValue() &&
+                board[0][2].getValue() !== '') // Check diagonal /
+        ) {
+            return board[1][1].getValue(); // Return the winning value (since the center cell must be part of any winning diagonal)
         }
-        if (board[0][2].getValue() === board[1][1].getValue() &&
-            board[1][1].getValue() === board[2][0].getValue() &&
-            board[0][2].getValue() !== '') {
-            return board[0][2].getValue();
-        }
 
-        return null;
-    }
-
-    const checkTie = () => {
-
-        // Iterate through the board
-        for (let row = 0; row < 3; row++) {
-            for (let column = 0; column < 3; column++) {
-                // Check if any cell is empty
-                if (board[row][column].getValue() === '') {
-                    return false; // Game is not yet a tie
+        // Check for tie
+        let isTie = true;
+        // Iterate through the board to check for empty cells
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (board[i][j].getValue() === '') {
+                    isTie = false; // If there's an empty cell, it's not a tie yet
+                    break;
                 }
             }
+            if (!isTie) break; // If we found an empty cell, no need to continue checking
         }
-    
-        // If all cells are filled and there's no winner, it's a tie
-        return true; // Game is a tie
+
+        // Return 'null' for no win or tie, 'X' or 'O' for a win, and 'tie' for a tie
+        return isTie ? 'tie' : null;
+    };
+
+    const announceGameEnd = () =>  {
+        gameEnded = true;
+    }
+
+    const announceGameStart = () =>  {
+        gameEnded = false;
     }
 
     const playRound = (row, column) => {
-        
+
+        if (gameEnded) return;
+
         const selectedCell = board[row][column];
+
         if (selectedCell.getValue() !== '') {
-        console.log('Oops... That cell is already occupied.');
-        printNewRound();
-        return; // Exit the function early
-    }
-        
+            // printNewRound();
+            displayBoard.announce(`Oops... That cell is already occupied. ${getActivePlayer().name}'s turn.`);
+
+            return; // Exit the function early
+        }
+
         gameboardInstance.addValue(row, column, getActivePlayer().value);
-
-        //check win logic here
-        let winnerValue = checkWin();
-        const winningPlayer = players.find(player => player.value === winnerValue);
-        if (winningPlayer) {
-            console.log(`${winningPlayer.name} wins!`)
-            gameboardInstance.printBoard();
-            gameboardInstance.resetBoard();
-            printNewRound();
-            return; 
-        }
-
-        let tieResult = checkTie();
-        if (tieResult) {
-            console.log(`It's a tie...`);
-            gameboardInstance.resetBoard();
-            printNewRound();
-            return; 
-        }
-
-        switchPlayerTurn();
-        printNewRound();
         displayBoard.updateCellDisplay(row, column, board);
+
+
+        const result = checkWinAndTie();
+        if (result === 'tie') {
+            displayBoard.updateCellDisplay(row, column, board);
+            displayBoard.announce(`It's a tie...`);
+            announceGameEnd();
+            return;
+        } else if (result !== null) {
+            const winningPlayer = players.find(player => player.value === result);
+            displayBoard.updateCellDisplay(row, column, board);
+            displayBoard.announce(`${winningPlayer.name} wins!`);
+            announceGameEnd();
+            return;
+        } else {
+            switchPlayerTurn();
+        }
+
+        displayBoard.announce(`${getActivePlayer().name}'s turn.`);
     };
 
-    printNewRound();
+    displayBoard.announce(`${getActivePlayer().name}'s turn.`);
 
     return {
         playRound,
-        getActivePlayer
+        getActivePlayer,
+        changePlayersName,
+        announceGameStart
     };
 }
 
+gameIntro();
+const displayBoard = gameboardDisplay();
+const gameboardInstance = Gameboard();
 const game = GameController();
+
+
+
+

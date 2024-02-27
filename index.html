@@ -9,6 +9,20 @@
 </head>
 <body>
     <header>Tic-Tac-Toe</header>
-    <div class="game-board"></div>
+    <div id="intro-page">
+        <label for="player-one-name">Player One Name:</label>
+        <input type="text" id="player-one-name" placeholder="Enter Player One's Name">
+    
+        <label for="player-two-name">Player Two Name:</label>
+        <input type="text" id="player-two-name" placeholder="Enter Player Two's Name">
+    
+        <button id="start-button">Start Game</button>
+    </div>
+    <div class="gameboard-container" style="display: none">
+        <div class="game-board"></div>
+        <div class="announcement"></div>
+        <button class="restart-button">Restart</button>
+    </div>
+    
 </body>
 </html>
